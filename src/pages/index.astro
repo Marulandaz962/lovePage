@@ -21,6 +21,7 @@ import JardinFinal from '../components/JardinFinal.astro';
   <footer>
     <p class="firma">{config.firma}</p>
     <p class="ruta">Pereira <IconoTulipan size={16} /> Londres</p>
+    <a class="farito" href="/farito">Una luz para ti, Farito</a>
   </footer>
   <JardinFinal />
 </Layout>
@@ -35,4 +36,18 @@ import JardinFinal from '../components/JardinFinal.astro';
   }
   .firma { font-family: var(--manuscrita); font-size: 2rem; color: var(--rosa-fuerte); }
   .ruta { margin-top: 0.3rem; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--dorado); }
+  .farito {
+    display: inline-block;
+    margin-top: 1.2rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #fbe7a6;
+    text-decoration: none;
+    background: linear-gradient(150deg, #11264a, #1e3a5f);
+    box-shadow: 0 6px 20px rgba(30, 58, 95, 0.25), 0 0 16px rgba(232, 200, 114, 0.25);
+  }
+  .farito::before { content: '\2726'; margin-right: 0.5rem; color: var(--dorado-suave); }
 </style>

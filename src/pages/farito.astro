@@ -1,0 +1,1012 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Tulipan from '../components/Tulipan.astro';
+import IconoTulipan from '../components/IconoTulipan.astro';
+import { config } from '../config';
+import { textos, luces, lista, pregunta } from '../data/farito';
+
+// Estrellas del fondo: posiciones fijas generadas al compilar
+const azar = (min: number, max: number) => +(min + Math.random() * (max - min)).toFixed(2);
+const cielo = Array.from({ length: 60 }, () => ({
+  x: azar(0, 100), y: azar(0, 66), s: azar(1, 2.6), t: azar(2.5, 6), d: azar(0, 5),
+}));
+
+// Tulipanes que florecen en la colina al amanecer
+const jardin = [
+  { x: 4, h: 62, d: 0.4, c: 'c' as const, fila: 'atras' as const },
+  { x: 14, h: 84, d: 0.1, c: 'a' as const },
+  { x: 24, h: 58, d: 0.55, c: 'b' as const, fila: 'atras' as const, extra: true },
+  { x: 36, h: 70, d: 0.3, c: 'b' as const },
+  { x: 50, h: 60, d: 0.65, c: 'c' as const, fila: 'atras' as const, extra: true },
+  { x: 62, h: 78, d: 0.2, c: 'a' as const },
+  { x: 74, h: 56, d: 0.5, c: 'c' as const, fila: 'atras' as const },
+  { x: 85, h: 88, d: 0, c: 'a' as const },
+  { x: 95, h: 62, d: 0.45, c: 'b' as const, fila: 'atras' as const },
+];
+---
+
+<Layout titulo="Mi Farito">
+  <section
+    id="escena"
+    class="escena"
+    role="button"
+    tabindex="0"
+    aria-label="Toca para encender el faro"
+  >
+    <div class="cielo-noche" aria-hidden="true"></div>
+    <div class="cielo-dia" aria-hidden="true"></div>
+
+    <div class="estrellas-fondo" aria-hidden="true">
+      {cielo.map((e) => (
+        <span style={`left:${e.x}%;top:${e.y}%;--s:${e.s}px;--t:${e.t}s;--d:${e.d}s`} />
+      ))}
+    </div>
+
+    <svg id="constelacion" class="constelacion" aria-hidden="true">
+      <polyline id="constelacion-linea" pathLength="1" />
+    </svg>
+
+    <div class="luz luz-haz" aria-hidden="true"><div class="haz"></div></div>
+    <div id="foco" class="foco" aria-hidden="true"></div>
+
+    {luces.map((_, i) => (
+      <button type="button" class="oculta" data-i={i} aria-label={`Estrella escondida ${i + 1}`} tabindex="-1"></button>
+    ))}
+
+    <svg class="paisaje" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+      <path class="colina" d="M50 40 Q56 14 70 9 Q84 6 100 9 V40Z" />
+      <path class="mar" d="M0 18 Q12.5 17 25 18 T50 18 T75 18 T100 18 V40 H0Z" />
+      <g class="olas">
+        <path d="M-20 22 Q-12 21 -4 22 T12 22 T28 22 T44 22 T60 22 T76 22 T92 22 T108 22 T124 22" />
+        <path d="M-20 28 Q-10 27 0 28 T20 28 T40 28 T60 28 T80 28 T100 28 T120 28" />
+        <path d="M-20 34 Q-13 33 -6 34 T8 34 T22 34 T36 34 T50 34 T64 34 T78 34 T92 34 T106 34 T120 34" />
+      </g>
+    </svg>
+    <div class="reflejo" aria-hidden="true"></div>
+
+    <div class="barco" aria-hidden="true">
+      <svg viewBox="0 0 120 84">
+        <g class="mece">
+          <path d="M60 4 C55 -1 50 4 60 11 C70 4 65 -1 60 4Z" fill="#e86a92" />
+          <path d="M60 11 V54" stroke="#1e3a5f" stroke-width="2.5" stroke-linecap="round" />
+          <path d="M63 14 L63 48 L98 48Z" fill="#fffdf8" />
+          <path d="M57 18 L57 48 L28 48Z" fill="#f6e7b8" />
+          <path d="M6 54 H114 L98 76 H22Z" fill="#fffdf8" />
+          <path d="M10 60 H110 L106 66 H14Z" fill="#e86a92" />
+        </g>
+      </svg>
+    </div>
+
+    <svg class="faro" viewBox="0 0 100 260" aria-hidden="true">
+      <defs>
+        <clipPath id="clip-torre"><path d="M31 84 L69 84 L80 246 L20 246Z" /></clipPath>
+        <linearGradient id="g-torre" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#fffdf8" />
+          <stop offset="0.6" stop-color="#f3ede4" />
+          <stop offset="1" stop-color="#d6cfc4" />
+        </linearGradient>
+        <linearGradient id="g-franja" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#f08aab" />
+          <stop offset="0.6" stop-color="#e86a92" />
+          <stop offset="1" stop-color="#c94f78" />
+        </linearGradient>
+        <radialGradient id="g-lampara">
+          <stop offset="0" stop-color="#fffbe9" />
+          <stop offset="0.55" stop-color="#f6e7b8" />
+          <stop offset="1" stop-color="#e8c872" />
+        </radialGradient>
+      </defs>
+      <path d="M31 84 L69 84 L80 246 L20 246Z" fill="url(#g-torre)" />
+      <g clip-path="url(#clip-torre)" fill="url(#g-franja)">
+        <rect x="0" y="108" width="100" height="24" />
+        <rect x="0" y="158" width="100" height="24" />
+        <rect x="0" y="208" width="100" height="22" />
+      </g>
+      <rect class="ventana" x="45" y="138" width="10" height="15" rx="5" />
+      <path d="M42 246 V230 Q50 221 58 230 V246Z" fill="#1e3a5f" />
+      <rect x="14" y="243" width="72" height="15" rx="3" fill="#8794a8" />
+      <path d="M25 76 V66 M33 76 V66 M41 76 V66 M59 76 V66 M67 76 V66 M75 76 V66 M24 66 H76" stroke="#1e3a5f" stroke-width="1.6" stroke-linecap="round" />
+      <rect x="22" y="76" width="56" height="9" rx="2" fill="#1e3a5f" />
+      <rect class="cristal" x="33" y="44" width="34" height="32" rx="2" />
+      <circle id="lampara" class="lampara" cx="50" cy="60" r="8" />
+      <path d="M44 44 V76 M56 44 V76" stroke="#1e3a5f" stroke-width="1.6" />
+      <path d="M27 47 Q50 12 73 47Z" fill="#e86a92" />
+      <circle cx="50" cy="27" r="3.4" fill="#d4af37" />
+    </svg>
+
+    <div id="jardin-faro" class="jardin-faro" aria-hidden="true">
+      {jardin.map((t) => <Tulipan {...t} />)}
+    </div>
+
+    <div class="luz luz-halo" aria-hidden="true"><div class="halo"></div></div>
+
+    <div class="relato">
+      <div class="pantalla p-inicio">
+        <h1 class="nombre">
+          <span class="oculto">{textos.nombre}, mi {textos.apodo}</span>
+          <span class="k" aria-hidden="true">{textos.nombre}</span>
+          <span class="f" aria-hidden="true">{textos.apodo}</span>
+        </h1>
+        <p class="subtitulo">{textos.subtitulo}</p>
+        <p class="tocar">{textos.tocar}</p>
+      </div>
+
+      <div class="pantalla p-relato">
+        <p class="frase" id="frase" aria-live="polite"></p>
+        <p class="contador" id="contador"></p>
+      </div>
+
+      <div class="pantalla p-amanecer">
+        <p class="saludo-amanecer">{textos.saludoAmanecer}</p>
+        <p class="texto-amanecer">{textos.textoAmanecer}</p>
+      </div>
+    </div>
+
+    <div class="abajo">
+      <button type="button" class="boton" id="ver-amanecer" hidden>{textos.botonAmanecer}</button>
+      <a class="bajar" href="#pregunta">
+        {textos.bajar}
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+      </a>
+    </div>
+  </section>
+
+  <main id="contenido" inert>
+    <section class="seccion" aria-labelledby="t-luces">
+      <h2 id="t-luces">{lista.titulo}</h2>
+      <p class="intro-seccion">{lista.texto}</p>
+      <ol class="luces">
+        {luces.map((l) => (
+          <li>
+            <span class="estrellita" aria-hidden="true"></span>
+            <p>{l}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="seccion pregunta" id="pregunta" aria-labelledby="t-pregunta">
+      <IconoTulipan size={40} />
+      <h2 id="t-pregunta">{pregunta.titulo}</h2>
+      <p class="texto-pregunta">{pregunta.texto}</p>
+      <form id="form-pregunta">
+        <label for="respuesta" class="oculto">Tu respuesta</label>
+        <textarea id="respuesta" rows="6" maxlength="5000" required placeholder={pregunta.placeholder}></textarea>
+        <button type="submit" class="boton" id="enviar">{pregunta.boton}</button>
+      </form>
+      <div class="gracias" id="gracias" aria-live="polite" hidden>
+        <p class="gracias-texto">{pregunta.gracias}</p>
+        <blockquote id="su-respuesta"></blockquote>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p class="firma">{config.firma}</p>
+    <p class="ruta">Pereira <IconoTulipan size={16} /> Londres</p>
+    <div class="enlaces">
+      <a href="/">Volver a nuestro rincón</a>
+      <button type="button" id="otra-vez">Encender el faro otra vez</button>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  /* ---------- Escena ---------- */
+  .escena {
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 480px;
+    overflow: hidden;
+    outline: none;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .escena.encendido { cursor: default; }
+  .escena.buscar:not(.amanecer) { touch-action: none; cursor: crosshair; }
+
+  .cielo-noche, .cielo-dia { position: absolute; inset: 0; }
+  .cielo-noche {
+    background:
+      radial-gradient(ellipse at 70% 75%, rgba(232, 200, 114, 0.12) 0%, transparent 50%),
+      linear-gradient(180deg, #081429 0%, #11264a 50%, #2a4a76 100%);
+  }
+  .cielo-dia {
+    background:
+      radial-gradient(ellipse at 50% 85%, rgba(246, 231, 184, 0.95) 0%, rgba(244, 166, 193, 0.35) 30%, transparent 60%),
+      linear-gradient(180deg, #8ecdf0 0%, #bfe3f7 50%, #eaf6fd 100%);
+    opacity: 0;
+    transition: opacity 3.5s ease;
+  }
+  .amanecer .cielo-dia { opacity: 1; }
+
+  .estrellas-fondo { position: absolute; inset: 0; transition: opacity 3s ease; }
+  .estrellas-fondo span {
+    position: absolute;
+    width: var(--s);
+    height: var(--s);
+    border-radius: 50%;
+    background: #fffbe9;
+    animation: titila var(--t) ease-in-out var(--d) infinite;
+  }
+  .amanecer .estrellas-fondo { opacity: 0; }
+  @keyframes titila {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 1; }
+  }
+
+  /* ---------- Luz del faro ---------- */
+  .luz { position: absolute; left: var(--lx, 72%); top: var(--ly, 40%); width: 0; height: 0; pointer-events: none; }
+  .luz-haz { z-index: 2; }
+  .luz-halo { z-index: 7; }
+
+  .haz {
+    position: absolute;
+    width: 240vmax;
+    height: 240vmax;
+    left: -120vmax;
+    top: -120vmax;
+    background: conic-gradient(
+      transparent 0deg 72deg,
+      rgba(255, 240, 190, 0.35) 82deg,
+      rgba(255, 250, 225, 0.7) 90deg,
+      rgba(255, 240, 190, 0.35) 98deg,
+      transparent 108deg 360deg
+    );
+    -webkit-mask-image: radial-gradient(circle closest-side, #000 0%, rgba(0, 0, 0, 0.55) 22%, transparent 62%);
+    mask-image: radial-gradient(circle closest-side, #000 0%, rgba(0, 0, 0, 0.55) 22%, transparent 62%);
+    transform: rotate(calc(var(--ang, -135) * 1deg));
+    opacity: 0;
+    will-change: transform;
+    transition: opacity 1.4s ease;
+  }
+  .encendido .haz { opacity: 1; animation: barrido 9s ease-in-out infinite alternate; }
+  .manual .haz { animation: none; transition: opacity 1.4s ease, transform 0.12s linear; }
+  .amanecer .haz { opacity: 0; }
+  @keyframes barrido {
+    from { transform: rotate(-172deg); }
+    to { transform: rotate(-20deg); }
+  }
+
+  .halo {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    left: -75px;
+    top: -75px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 251, 233, 1) 0%, rgba(246, 231, 184, 0.55) 22%, rgba(232, 200, 114, 0.15) 45%, transparent 70%);
+    opacity: 0;
+    transform: scale(0.3);
+    transition: opacity 1.2s ease, transform 1.2s ease;
+  }
+  .encendido .halo { opacity: 1; transform: scale(1); animation: respira 3.2s ease-in-out 1.2s infinite; }
+  .amanecer .halo { opacity: 0.45; }
+  @keyframes respira { 50% { transform: scale(1.12); } }
+
+  .foco {
+    position: absolute;
+    left: -60px;
+    top: -60px;
+    width: 120px;
+    height: 120px;
+    z-index: 4;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(255, 246, 210, 0.4) 0%, rgba(255, 246, 210, 0.12) 45%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .foco.ver { opacity: 1; }
+
+  /* ---------- Estrellas escondidas y constelación ---------- */
+  .oculta {
+    position: absolute;
+    z-index: 5;
+    width: 48px;
+    height: 48px;
+    margin: -24px 0 0 -24px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.6s ease;
+  }
+  .oculta:focus-visible { outline: 2px dashed rgba(246, 231, 184, 0.8); outline-offset: 2px; }
+  .buscar .oculta { opacity: 1; pointer-events: auto; }
+  .amanecer .oculta { pointer-events: none; }
+  .oculta::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin: -3px;
+    border-radius: 50%;
+    background: #fff6d5;
+    box-shadow: 0 0 6px 2px rgba(232, 200, 114, 0.45);
+    animation: pista 2.8s ease-in-out infinite;
+    transition: width 0.8s ease, height 0.8s ease, margin 0.8s ease;
+  }
+  @keyframes pista {
+    0%, 100% { opacity: 0.35; transform: scale(0.8); }
+    50% { opacity: 0.9; transform: scale(1.15); }
+  }
+  .oculta::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 38px;
+    height: 38px;
+    margin: -19px;
+    background: #fff3c4;
+    clip-path: polygon(50% 0, 56% 44%, 100% 50%, 56% 56%, 50% 100%, 44% 56%, 0 50%, 44% 44%);
+    transform: scale(0) rotate(0deg);
+    transition: transform 1s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .oculta.encontrada::before {
+    width: 12px;
+    height: 12px;
+    margin: -6px;
+    background: radial-gradient(circle, #fffbe9 30%, #e8c872);
+    box-shadow: 0 0 14px 6px rgba(246, 231, 184, 0.75), 0 0 36px 14px rgba(212, 175, 55, 0.3);
+    animation: brilla 2.6s ease-in-out infinite;
+  }
+  .oculta.encontrada::after { transform: scale(1) rotate(45deg); }
+  .amanecer .oculta::before { box-shadow: 0 0 10px 4px rgba(212, 175, 55, 0.55); }
+  .amanecer .oculta::after { background: var(--dorado-suave); }
+  @keyframes brilla {
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.25); }
+  }
+
+  .constelacion { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; }
+  .constelacion polyline {
+    fill: none;
+    stroke: #f6e7b8;
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    opacity: 0.85;
+    filter: drop-shadow(0 0 4px rgba(232, 200, 114, 0.9));
+    transition: stroke-dashoffset 3.5s ease-in-out, stroke 3s ease;
+  }
+  .final .constelacion polyline { stroke-dashoffset: 0; }
+  .amanecer .constelacion polyline { stroke: var(--dorado); }
+
+  /* ---------- Paisaje ---------- */
+  .paisaje { position: absolute; left: 0; bottom: 0; width: 100%; height: 40%; z-index: 3; }
+  .colina { fill: #0e2640; transition: fill 3.5s ease; }
+  .mar { fill: #0c2244; transition: fill 3.5s ease; }
+  .amanecer .colina { fill: #86bf91; }
+  .amanecer .mar { fill: #6db5e2; }
+  .olas path {
+    fill: none;
+    stroke: rgba(142, 205, 240, 0.35);
+    stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+    transition: stroke 3s ease;
+  }
+  .olas path:nth-child(1) { animation: ola 7s ease-in-out infinite alternate; }
+  .olas path:nth-child(2) { animation: ola 9s ease-in-out -3s infinite alternate-reverse; }
+  .olas path:nth-child(3) { animation: ola 11s ease-in-out -5s infinite alternate; }
+  .amanecer .olas path { stroke: rgba(255, 253, 248, 0.6); }
+  @keyframes ola { to { transform: translateX(12px); } }
+
+  .reflejo {
+    position: absolute;
+    left: var(--lx, 72%);
+    bottom: 0;
+    width: 70px;
+    height: 22%;
+    margin-left: -35px;
+    z-index: 3;
+    background: linear-gradient(90deg, transparent, rgba(255, 240, 190, 0.45) 50%, transparent);
+    -webkit-mask-image: linear-gradient(0deg, transparent, #000 90%), repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.25) 3px 10px);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(0deg, transparent, #000 90%), repeating-linear-gradient(0deg, #000 0 3px, rgba(0, 0, 0, 0.25) 3px 10px);
+    mask-composite: intersect;
+    opacity: 0;
+    transition: opacity 1.6s ease;
+  }
+  .encendido .reflejo { opacity: 1; animation: brillo-agua 2.4s ease-in-out infinite; }
+  .amanecer .reflejo { opacity: 0; animation: none; }
+  @keyframes brillo-agua { 50% { transform: scaleX(1.3); } }
+
+  .barco {
+    position: absolute;
+    z-index: 4;
+    left: -18%;
+    bottom: 19%;
+    width: clamp(58px, 13vw, 120px);
+    transition: left 7.5s cubic-bezier(0.35, 0.1, 0.3, 1) 0.6s;
+  }
+  .barco svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .encendido .barco { left: 34%; }
+  .mece { transform-box: view-box; transform-origin: 60px 70px; animation: mece 3.6s ease-in-out infinite; }
+  @keyframes mece {
+    0%, 100% { transform: rotate(-3deg) translateY(0); }
+    50% { transform: rotate(3deg) translateY(3px); }
+  }
+
+  .faro {
+    position: absolute;
+    z-index: 5;
+    left: 72%;
+    bottom: 30.5%;
+    height: min(34%, 380px);
+    aspect-ratio: 100 / 260;
+    transform: translateX(-50%);
+    filter: brightness(0.62) saturate(0.8);
+    transition: filter 3.5s ease;
+  }
+  .encendido .faro { filter: brightness(0.75) saturate(0.85); }
+  .amanecer .faro { filter: none; }
+  .cristal { fill: #2a3f60; transition: fill 1.2s ease; }
+  .lampara { fill: #3d5477; transition: fill 1.2s ease; }
+  .ventana { fill: #1e3a5f; transition: fill 1.2s ease; }
+  .encendido .cristal { fill: url(#g-lampara); }
+  .encendido .lampara { fill: #fffbe9; }
+  .encendido .ventana { fill: #e8c872; }
+
+  .jardin-faro {
+    position: absolute;
+    z-index: 6;
+    left: 58%;
+    right: 0;
+    bottom: 28.5%;
+    height: 11%;
+  }
+
+  /* ---------- Textos sobre la escena ---------- */
+  .relato {
+    position: absolute;
+    z-index: 8;
+    top: max(5%, calc(env(safe-area-inset-top) + 16px));
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(92%, 620px);
+    display: grid;
+    text-align: center;
+    pointer-events: none;
+  }
+  .pantalla {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(10px);
+    visibility: hidden;
+    transition: opacity 1.2s ease, transform 1.2s ease, visibility 1.2s;
+  }
+  .despierta .p-inicio { opacity: 1; transform: none; visibility: visible; }
+  .encendido .p-inicio { opacity: 0; transform: translateY(-10px); visibility: hidden; }
+  .encendido .p-relato { opacity: 1; transform: none; visibility: visible; transition-delay: 0.8s; }
+  .amanecer .p-relato { opacity: 0; visibility: hidden; transition-delay: 0s; }
+  .amanecer .p-amanecer { opacity: 1; transform: none; visibility: visible; transition-delay: 1.6s; pointer-events: auto; }
+
+  .nombre {
+    display: grid;
+    font-family: var(--manuscrita);
+    font-weight: 400;
+    font-size: clamp(3.6rem, 17vw, 6.4rem);
+    line-height: 1.15;
+    color: var(--blanco);
+  }
+  .nombre span:not(.oculto) {
+    grid-area: 1 / 1;
+    transition: opacity 1.6s ease, filter 1.6s ease, transform 1.6s ease;
+  }
+  .nombre .k { text-shadow: 0 0 20px rgba(142, 205, 240, 0.5); }
+  .nombre .f {
+    color: #fbe7a6;
+    text-shadow: 0 0 22px rgba(246, 231, 184, 0.8), 0 0 50px rgba(212, 175, 55, 0.45);
+    opacity: 0;
+    filter: blur(10px);
+    transform: scale(0.9);
+  }
+  .cambia .nombre .k { opacity: 0; filter: blur(10px); transform: scale(1.1); }
+  .cambia .nombre .f { opacity: 1; filter: none; transform: none; }
+
+  .subtitulo, .tocar { opacity: 0; transition: opacity 1.4s ease; }
+  .subtitulo {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(1.15rem, 4.6vw, 1.5rem);
+    color: var(--dorado-claro);
+  }
+  .tocar { margin-top: 1.6rem; font-size: 0.95rem; letter-spacing: 0.06em; color: rgba(255, 253, 248, 0.85); }
+  .cambia .subtitulo { opacity: 1; transition-delay: 1s; }
+  .cambia .tocar { opacity: 0.9; transition-delay: 2.2s; animation: latido 2.4s ease-in-out 3.6s infinite; }
+  @keyframes latido { 50% { opacity: 0.35; } }
+
+  .frase {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(1.1rem, 4.4vw, 1.5rem);
+    line-height: 1.55;
+    color: var(--blanco);
+    text-shadow: 0 2px 14px rgba(8, 20, 41, 0.9);
+    min-height: 3em;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .frase.cambiando { opacity: 0; transform: translateY(6px); }
+  .contador {
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dorado-suave);
+  }
+  .abajo {
+    position: absolute;
+    z-index: 9;
+    left: 50%;
+    bottom: max(5%, calc(env(safe-area-inset-bottom) + 16px));
+    transform: translateX(-50%);
+    display: grid;
+    justify-items: center;
+  }
+  .abajo > * { grid-area: 1 / 1; white-space: nowrap; }
+  .abajo .boton { margin: 0; animation: entra 1.4s ease both; }
+  .amanecer .abajo .boton { display: none; }
+
+  .saludo-amanecer {
+    font-family: var(--manuscrita);
+    font-size: clamp(3rem, 13vw, 4.8rem);
+    line-height: 1.15;
+    color: var(--rosa-fuerte);
+    text-shadow: 0 2px 16px rgba(255, 253, 248, 0.8);
+  }
+  .texto-amanecer {
+    margin: 0.4rem auto 0;
+    max-width: 30em;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(1rem, 4vw, 1.2rem);
+    line-height: 1.6;
+    color: var(--texto);
+  }
+  .bajar {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 1.4s ease 3s, visibility 1.4s 3s;
+    padding: 0.7rem 1.6rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(255, 253, 248, 0.75);
+    box-shadow: 0 6px 20px rgba(30, 58, 95, 0.12);
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--texto);
+    text-decoration: none;
+  }
+  .amanecer .bajar { opacity: 1; visibility: visible; }
+  .bajar svg { fill: none; stroke: var(--rosa-fuerte); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; animation: rebote 1.8s ease-in-out infinite; }
+  @keyframes rebote { 50% { transform: translateY(5px); } }
+
+  /* Celular en horizontal: todo más compacto */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .relato { top: 4%; }
+    .nombre { font-size: clamp(2.6rem, 14vh, 3.6rem); }
+    .frase { font-size: 1rem; min-height: 0; }
+    .tocar { margin-top: 0.6rem; }
+    .texto-amanecer { font-size: 0.95rem; }
+    .saludo-amanecer { font-size: 2.4rem; }
+  }
+
+  /* ---------- Botón ---------- */
+  .boton {
+    margin-top: 1.4rem;
+    font: 600 1rem var(--sans);
+    letter-spacing: 0.06em;
+    color: var(--texto);
+    padding: 0.85rem 2.2rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--dorado);
+    background: linear-gradient(135deg, #fff9e6, var(--dorado-claro));
+    box-shadow: 0 6px 24px rgba(212, 175, 55, 0.35);
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.3s ease;
+  }
+  .boton:focus-visible { outline: 2px solid var(--rosa-fuerte); outline-offset: 3px; }
+  .boton:disabled { opacity: 0.6; cursor: default; }
+  @media (hover: hover) {
+    .boton:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.5); }
+  }
+  @keyframes entra {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* ---------- Contenido debajo ---------- */
+  main { width: min(100% - 32px, 640px); margin: 0 auto; padding: 1rem 0 3rem; }
+  .seccion { margin-top: 3.5rem; }
+  h2 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.6rem, 6vw, 2.1rem);
+    text-align: center;
+  }
+  h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 2px;
+    margin: 0.7rem auto 0;
+    background: linear-gradient(90deg, transparent, var(--dorado), transparent);
+  }
+  .intro-seccion { margin-top: 0.9rem; text-align: center; color: var(--texto-suave); line-height: 1.6; }
+
+  .luces { list-style: none; margin-top: 2rem; display: grid; gap: 1rem; }
+  .luces li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.3rem 1.3rem;
+    border-radius: 16px;
+    background: linear-gradient(150deg, #13294b, #1e3a5f);
+    color: var(--blanco);
+    box-shadow: 0 10px 28px rgba(30, 58, 95, 0.18);
+  }
+  .luces p { font-family: var(--serif); font-style: italic; line-height: 1.65; }
+  .estrellita {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin-top: 0.15rem;
+    background: radial-gradient(circle, #fffbe9 20%, #e8c872 70%);
+    clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+    filter: drop-shadow(0 0 4px rgba(232, 200, 114, 0.8));
+  }
+
+  .pregunta {
+    padding: 2.2rem clamp(1.2rem, 5vw, 2.2rem);
+    border-radius: 20px;
+    background: linear-gradient(160deg, var(--blanco), #fff4f8);
+    border: 1.5px solid var(--rosa);
+    text-align: center;
+  }
+  .pregunta h2 { margin-top: 0.4rem; }
+  .texto-pregunta {
+    margin-top: 1rem;
+    font-family: var(--serif);
+    font-size: 1.08rem;
+    line-height: 1.7;
+  }
+  form { margin-top: 1.4rem; }
+  textarea {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(30, 58, 95, 0.2);
+    background: #fff;
+    font: 1rem/1.6 var(--sans);
+    color: var(--texto);
+    resize: vertical;
+  }
+  textarea:focus-visible { outline: 2px solid var(--rosa); outline-offset: 1px; }
+  .gracias { margin-top: 1.4rem; animation: entra 1.4s ease both; }
+  .gracias-texto {
+    font-family: var(--manuscrita);
+    font-size: clamp(1.9rem, 7.5vw, 2.5rem);
+    color: var(--rosa-fuerte);
+    line-height: 1.3;
+  }
+  .gracias blockquote {
+    margin-top: 1.2rem;
+    padding: 1rem 1.2rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.7);
+    border-left: 4px solid var(--dorado-suave);
+    text-align: left;
+    font-family: var(--serif);
+    font-style: italic;
+    line-height: 1.7;
+    color: var(--texto-suave);
+    white-space: pre-line;
+  }
+
+  .oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* ---------- Pie ---------- */
+  footer {
+    text-align: center;
+    padding: 2rem 16px 2.5rem;
+    border-top: 1px solid rgba(212, 175, 55, 0.25);
+    width: min(100% - 32px, 640px);
+    margin: 0 auto;
+  }
+  .firma { font-family: var(--manuscrita); font-size: 2rem; color: var(--rosa-fuerte); }
+  .ruta { margin-top: 0.3rem; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--dorado); }
+  .enlaces { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem 1.4rem; margin-top: 1.2rem; }
+  .enlaces a, .enlaces button {
+    font: 0.9rem var(--sans);
+    color: var(--texto-suave);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+</style>
+
+<script define:vars={{ luces, textos, preguntaTexto: pregunta.texto, hoja: config.hojaRespuestas }}>
+  const CLAVE = 'farito-amanecer';
+  const CLAVE_RESPUESTA = 'farito-respuesta';
+  // Las estrellas forman un corazón (posiciones relativas al centro del corazón)
+  const FORMA = [[-0.5, -0.1], [-0.25, -0.48], [0, -0.25], [0.25, -0.48], [0.5, -0.1], [0, 0.5]];
+  const sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const espera = (ms) => (sinMovimiento ? Math.min(ms, 600) : ms);
+
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  const escena = document.getElementById('escena');
+  const lampara = document.getElementById('lampara');
+  const estrellas = [...document.querySelectorAll('.oculta')];
+  const svgConstelacion = document.getElementById('constelacion');
+  const linea = document.getElementById('constelacion-linea');
+  const frase = document.getElementById('frase');
+  const contador = document.getElementById('contador');
+  const botonAmanecer = document.getElementById('ver-amanecer');
+  const foco = document.getElementById('foco');
+  const contenido = document.getElementById('contenido');
+  const jardin = document.getElementById('jardin-faro');
+
+  let fase = 'inicio';
+  const geo = { w: 0, h: 0, lx: 0, ly: 0, puntos: [] };
+  const encontradas = new Set();
+
+  // Calcula dónde está la lámpara y dónde van las estrellas según el tamaño de la pantalla
+  function medir() {
+    const r = escena.getBoundingClientRect();
+    const l = lampara.getBoundingClientRect();
+    geo.w = r.width;
+    geo.h = r.height;
+    geo.lx = l.left + l.width / 2 - r.left;
+    geo.ly = l.top + l.height / 2 - r.top;
+    escena.style.setProperty('--lx', `${geo.lx}px`);
+    escena.style.setProperty('--ly', `${geo.ly}px`);
+
+    const vertical = geo.h > geo.w;
+    const s = vertical ? Math.min(geo.w * 0.58, geo.h * 0.3) : Math.min(geo.w * 0.5, geo.h * 0.4);
+    const cx = geo.w * (vertical ? 0.37 : 0.4);
+    const cy = geo.h * (vertical ? 0.37 : 0.45);
+    geo.puntos = FORMA.map(([x, y]) => ({ x: cx + x * s, y: cy + y * s * 0.9 }));
+    estrellas.forEach((e, i) => {
+      e.style.left = `${geo.puntos[i].x}px`;
+      e.style.top = `${geo.puntos[i].y}px`;
+    });
+    svgConstelacion.setAttribute('viewBox', `0 0 ${geo.w} ${geo.h}`);
+    linea.setAttribute('points', [...geo.puntos, geo.puntos[0]].map((p) => `${p.x},${p.y}`).join(' '));
+  }
+  medir();
+  new ResizeObserver(medir).observe(escena);
+  window.addEventListener('load', medir);
+
+  let temporizadorFrase;
+  function mostrarFrase(texto) {
+    frase.classList.add('cambiando');
+    clearTimeout(temporizadorFrase);
+    temporizadorFrase = setTimeout(() => {
+      frase.textContent = texto;
+      frase.classList.remove('cambiando');
+    }, sinMovimiento ? 0 : 350);
+  }
+
+  // 1. Se enciende el faro y el barquito navega hacia la luz
+  function encender() {
+    if (fase !== 'inicio') return;
+    fase = 'encendido';
+    escena.classList.add('cambia', 'encendido');
+    escena.removeAttribute('role');
+    escena.removeAttribute('aria-label');
+    escena.removeAttribute('tabindex');
+    setTimeout(() => mostrarFrase(textos.faro), espera(1400));
+    setTimeout(buscar, espera(9000));
+  }
+
+  // 2. Ella mueve la luz para encontrar las estrellas escondidas
+  function buscar() {
+    fase = 'buscar';
+    escena.classList.add('buscar');
+    estrellas.forEach((e) => (e.tabIndex = 0));
+    mostrarFrase(textos.pista);
+    contador.textContent = `Encontraste 0 de ${luces.length} estrellas`;
+    requestAnimationFrame(bucle);
+  }
+
+  let manual = false;
+  let px = null;
+  let py = null;
+  function apuntar(e) {
+    if (fase !== 'buscar' && fase !== 'final') return;
+    const r = escena.getBoundingClientRect();
+    px = e.clientX - r.left;
+    py = e.clientY - r.top;
+    if (!manual) {
+      manual = true;
+      escena.classList.add('manual');
+    }
+    const angulo = (Math.atan2(py - geo.ly, px - geo.lx) * 180) / Math.PI;
+    escena.style.setProperty('--ang', angulo.toFixed(1));
+    foco.style.transform = `translate(${px}px, ${py}px)`;
+    foco.classList.add('ver');
+  }
+  function soltar() {
+    px = null;
+    foco.classList.remove('ver');
+  }
+
+  // Si la luz se queda un momento sobre una estrella, la encuentra
+  let cercana = -1;
+  let desde = 0;
+  let enfriando = 0;
+  function bucle(t) {
+    if (fase !== 'buscar') return;
+    if (px !== null && t > enfriando) {
+      const radio = Math.max(36, Math.min(geo.w, geo.h) * 0.07);
+      let mejor = -1;
+      let distancia = Infinity;
+      geo.puntos.forEach((p, i) => {
+        if (encontradas.has(i)) return;
+        const d = Math.hypot(p.x - px, p.y - py);
+        if (d < radio && d < distancia) { distancia = d; mejor = i; }
+      });
+      if (mejor !== cercana) {
+        cercana = mejor;
+        desde = t;
+      } else if (mejor >= 0 && t - desde > 350) {
+        encontrar(mejor);
+      }
+    }
+    requestAnimationFrame(bucle);
+  }
+
+  function encontrar(i) {
+    if (fase !== 'buscar') return;
+    mostrarFrase(luces[i]);
+    if (encontradas.has(i)) return;
+    encontradas.add(i);
+    estrellas[i].classList.add('encontrada');
+    estrellas[i].setAttribute('aria-label', `Estrella ${i + 1}: ${luces[i]}`);
+    enfriando = performance.now() + 1800;
+    cercana = -1;
+    contador.textContent = `Encontraste ${encontradas.size} de ${luces.length} estrellas`;
+    if (encontradas.size === luces.length) setTimeout(terminar, espera(5500));
+  }
+
+  // 3. Las estrellas se unen en un corazón
+  function terminar() {
+    fase = 'final';
+    escena.classList.add('final');
+    contador.textContent = '';
+    mostrarFrase(textos.final);
+    setTimeout(() => {
+      botonAmanecer.hidden = false;
+      botonAmanecer.focus({ preventScroll: true });
+    }, espera(3200));
+  }
+
+  // 4. Amanece, florecen los tulipanes y aparece la pregunta
+  function amanecer() {
+    fase = 'amanecer';
+    soltar();
+    escena.classList.add('despierta', 'cambia', 'encendido', 'buscar', 'final', 'amanecer');
+    escena.removeAttribute('role');
+    escena.removeAttribute('aria-label');
+    escena.removeAttribute('tabindex');
+    estrellas.forEach((e, i) => {
+      e.classList.add('encontrada');
+      e.tabIndex = -1;
+      e.setAttribute('aria-label', `Estrella ${i + 1}: ${luces[i]}`);
+    });
+    document.body.classList.remove('bloqueado');
+    contenido.inert = false;
+    try { localStorage.setItem(CLAVE, new Date().toISOString()); } catch {}
+    jardin.classList.add('crece');
+    setTimeout(() => jardin.classList.add('florece'), espera(2200));
+    setTimeout(() => jardin.classList.add('listo'), espera(4600));
+  }
+
+  escena.addEventListener('pointerdown', (e) => {
+    if (fase === 'inicio') return encender();
+    apuntar(e);
+  });
+  escena.addEventListener('pointermove', apuntar);
+  escena.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') soltar(); });
+  escena.addEventListener('pointerleave', soltar);
+  escena.addEventListener('pointercancel', soltar);
+  escena.addEventListener('keydown', (e) => {
+    if (fase === 'inicio' && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      encender();
+    }
+  });
+  estrellas.forEach((e, i) => e.addEventListener('click', () => encontrar(i)));
+  botonAmanecer.addEventListener('click', amanecer);
+
+  document.getElementById('otra-vez').addEventListener('click', () => {
+    try { localStorage.removeItem(CLAVE); } catch {}
+    window.scrollTo(0, 0);
+    location.reload();
+  });
+
+  // Si ya vivió la noche antes, la recibe el amanecer
+  let yaAmanecio = null;
+  try { yaAmanecio = localStorage.getItem(CLAVE); } catch {}
+  if (yaAmanecio) {
+    amanecer();
+  } else {
+    window.scrollTo(0, 0);
+    document.body.classList.add('bloqueado');
+    escena.focus({ preventScroll: true });
+    requestAnimationFrame(() => requestAnimationFrame(() => escena.classList.add('despierta')));
+    setTimeout(() => escena.classList.add('cambia'), espera(2200));
+  }
+
+  // ---------- La pregunta ----------
+  const form = document.getElementById('form-pregunta');
+  const campo = document.getElementById('respuesta');
+  const enviar = document.getElementById('enviar');
+  const gracias = document.getElementById('gracias');
+  const suRespuesta = document.getElementById('su-respuesta');
+
+  function mostrarGracias(texto) {
+    form.hidden = true;
+    gracias.hidden = false;
+    suRespuesta.textContent = texto;
+  }
+
+  try {
+    const guardada = JSON.parse(localStorage.getItem(CLAVE_RESPUESTA) || 'null');
+    if (guardada?.texto) mostrarGracias(guardada.texto);
+  } catch {}
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const texto = campo.value.trim();
+    if (!texto) return campo.focus();
+    enviar.disabled = true;
+    const fecha = new Date().toISOString();
+    try { localStorage.setItem(CLAVE_RESPUESTA, JSON.stringify({ texto, fecha })); } catch {}
+    mostrarGracias(texto);
+
+    // Te avisa en tu hoja de cálculo, igual que las cartas
+    if (!hoja) return;
+    try {
+      await fetch(hoja, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          fecha,
+          carta: '',
+          asunto: 'Mi Farito: contigo donde sea',
+          pregunta: preguntaTexto,
+          respuesta: texto,
+        }),
+      });
+    } catch {}
+  });
+</script>
