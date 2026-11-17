@@ -1,0 +1,485 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Tulipan from '../components/Tulipan.astro';
+import IconoTulipan from '../components/IconoTulipan.astro';
+import { config } from '../config';
+import { portada, carta, posdata, escuchado, promesas, suenos, pacto } from '../data/florecer';
+
+// Jardín del final: florece cuando ella acepta el pacto
+const jardin = [
+  { x: 5, h: 60, d: 0.5, c: 'c' as const, fila: 'atras' as const, extra: true },
+  { x: 14, h: 80, d: 0.2, c: 'a' as const },
+  { x: 24, h: 58, d: 0.6, c: 'b' as const, fila: 'atras' as const },
+  { x: 33, h: 74, d: 0.35, c: 'c' as const },
+  { x: 42, h: 62, d: 0.7, c: 'b' as const, fila: 'atras' as const, extra: true },
+  { x: 51, h: 92, d: 0, c: 'a' as const },
+  { x: 60, h: 64, d: 0.65, c: 'c' as const, fila: 'atras' as const, extra: true },
+  { x: 69, h: 76, d: 0.3, c: 'b' as const },
+  { x: 78, h: 56, d: 0.55, c: 'c' as const, fila: 'atras' as const },
+  { x: 87, h: 82, d: 0.15, c: 'a' as const },
+  { x: 96, h: 60, d: 0.45, c: 'b' as const, fila: 'atras' as const, extra: true },
+];
+---
+
+<Layout titulo="Volver a florecer">
+  <div id="sobre" class="sobre" role="dialog" aria-modal="true" aria-labelledby="sobre-saludo">
+    <div class="sobre-contenido">
+      <IconoTulipan size={46} />
+      <p class="sobre-saludo" id="sobre-saludo">{portada.saludo}</p>
+      <p class="sobre-texto">{portada.texto}</p>
+      <button type="button" class="boton" id="abrir">Abrir la carta</button>
+    </div>
+  </div>
+
+  <main>
+    <header class="cabecera aparece">
+      <p class="antetitulo">Una carta para empezar de nuevo</p>
+      <h1>Volver a florecer</h1>
+    </header>
+
+    <article class="carta aparece">
+      <p class="carta-saludo">Mi Karito:</p>
+      {carta.map((parrafo) => <p>{parrafo}</p>)}
+      <p class="carta-firma">Tu persona, desde Pereira</p>
+      <p class="posdata"><span>P. D.</span> {posdata}</p>
+    </article>
+
+    <section class="seccion" aria-labelledby="t-escuche">
+      <h2 id="t-escuche" class="aparece">Te escuché</h2>
+      <p class="intro-seccion aparece">Guardé cada cosa que me escribiste en tus cartas. Estas son las que más me quedaron en el corazón.</p>
+      <ul class="escuchado">
+        {escuchado.map((e) => (
+          <li class="aparece">
+            <p class="etiqueta">{e.asunto}</p>
+            <blockquote>{e.ella}</blockquote>
+            <p class="respuesta">{e.yo}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="seccion" aria-labelledby="t-prometo">
+      <h2 id="t-prometo" class="aparece">Lo que te prometo</h2>
+      <p class="intro-seccion aparece">Para cuando lleguen las discusiones, porque van a llegar, y quiero que nos encuentren preparados.</p>
+      <ol class="promesas">
+        {promesas.map((p, i) => (
+          <li class="aparece">
+            <span class="numero" aria-hidden="true">{i + 1}</span>
+            <div>
+              <h3>{p.titulo}</h3>
+              <p>{p.texto}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="seccion" aria-labelledby="t-suenos">
+      <h2 id="t-suenos" class="aparece">Los sueños que vamos a cumplir</h2>
+      <p class="intro-seccion aparece">Todos salieron de tus palabras. No se me olvida ninguno.</p>
+      <ol class="camino">
+        {suenos.map((s) => (
+          <li class="aparece">
+            <span class="punto" aria-hidden="true"><IconoTulipan size={18} /></span>
+            <h3>{s.titulo}</h3>
+            <blockquote>{s.ella}</blockquote>
+            <p class="paso"><span>Primer paso:</span> {s.paso}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="seccion pacto aparece" aria-labelledby="t-pacto" id="pacto">
+      <h2 id="t-pacto">{pacto.titulo}</h2>
+      <p class="intro-seccion">{pacto.texto}</p>
+      <form id="form-pacto">
+        <label for="promesa-ella" class="oculto">Tu promesa o lo que necesitas de mí</label>
+        <textarea id="promesa-ella" rows="4" maxlength="2000" placeholder="Escribe aquí, si quieres..."></textarea>
+        <button type="submit" class="boton" id="aceptar">{pacto.boton}</button>
+      </form>
+      <p class="gracias" id="gracias" aria-live="polite" hidden>{pacto.gracias}</p>
+    </section>
+
+    <div class="jardin" id="jardin" aria-hidden="true">
+      {jardin.map((t) => <Tulipan {...t} />)}
+    </div>
+  </main>
+
+  <footer>
+    <p class="firma">{config.firma}</p>
+    <p class="ruta">Pereira <IconoTulipan size={16} /> Londres</p>
+    <a class="volver" href="/">Volver a nuestro rincón</a>
+  </footer>
+</Layout>
+
+<style>
+  /* ---------- Sobre de entrada ---------- */
+  .sobre {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px;
+    background:
+      radial-gradient(ellipse at 50% 110%, rgba(246, 231, 184, 0.9) 0%, transparent 55%),
+      linear-gradient(180deg, #8ecdf0 0%, #bfe3f7 45%, #eaf6fd 100%);
+    transition: opacity 1.2s ease, visibility 1.2s;
+  }
+  .sobre.salida { opacity: 0; visibility: hidden; }
+  .sobre-contenido {
+    width: min(100%, 420px);
+    text-align: center;
+    padding: 2.4rem 1.6rem;
+    border-radius: 22px;
+    background: var(--blanco);
+    border: 1.5px solid var(--dorado-suave);
+    box-shadow: 0 18px 50px rgba(30, 58, 95, 0.18);
+    animation: entra 1.2s ease both;
+  }
+  .sobre-saludo {
+    font-family: var(--manuscrita);
+    font-size: clamp(3rem, 14vw, 4.2rem);
+    color: var(--rosa-fuerte);
+    margin-top: 0.4rem;
+    line-height: 1.1;
+  }
+  .sobre-texto { margin-top: 0.6rem; color: var(--texto-suave); line-height: 1.6; }
+
+  .boton {
+    margin-top: 1.6rem;
+    font: 600 1rem var(--sans);
+    letter-spacing: 0.06em;
+    color: var(--texto);
+    padding: 0.85rem 2.2rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--dorado);
+    background: linear-gradient(135deg, #fff9e6, var(--dorado-claro));
+    box-shadow: 0 6px 24px rgba(212, 175, 55, 0.35);
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.3s ease;
+  }
+  .boton:focus-visible { outline: 2px solid var(--rosa-fuerte); outline-offset: 3px; }
+  .boton:disabled { opacity: 0.6; cursor: default; }
+  @media (hover: hover) {
+    .boton:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.5); }
+  }
+
+  @keyframes entra {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* ---------- Estructura ---------- */
+  main {
+    width: min(100% - 32px, 640px);
+    margin: 0 auto;
+    padding: 4rem 0 0;
+  }
+
+  .aparece { opacity: 0; transform: translateY(20px); transition: opacity 1s ease, transform 1s ease; }
+  .aparece.visible { opacity: 1; transform: none; }
+
+  .cabecera { text-align: center; }
+  .antetitulo {
+    font-size: 0.85rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dorado);
+  }
+  h1 {
+    font-family: var(--manuscrita);
+    font-weight: 400;
+    font-size: clamp(3rem, 13vw, 4.8rem);
+    color: var(--rosa-fuerte);
+    line-height: 1.15;
+    margin-top: 0.3rem;
+  }
+
+  /* ---------- Carta ---------- */
+  .carta {
+    margin-top: 2.4rem;
+    padding: 2.2rem clamp(1.3rem, 5vw, 2.6rem);
+    background:
+      repeating-linear-gradient(180deg, transparent 0 31px, rgba(142, 205, 240, 0.18) 31px 32px),
+      var(--blanco);
+    border-radius: 18px;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    box-shadow: 0 14px 40px rgba(30, 58, 95, 0.1);
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    line-height: 1.85;
+  }
+  .carta p + p { margin-top: 1rem; }
+  .carta .posdata { margin-top: 1.2rem; font-size: 0.98rem; color: var(--texto-suave); }
+  .posdata span { font-weight: 600; color: var(--rosa-fuerte); }
+  .carta-saludo {
+    font-family: var(--manuscrita);
+    font-size: 2.2rem;
+    color: var(--rosa-fuerte);
+    line-height: 1.2;
+  }
+  .carta .carta-firma {
+    margin-top: 1.6rem;
+    text-align: right;
+    font-family: var(--manuscrita);
+    font-size: 1.9rem;
+    color: var(--rosa-fuerte);
+  }
+
+  /* ---------- Secciones ---------- */
+  .seccion { margin-top: 4.5rem; }
+  h2 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.6rem, 6vw, 2.1rem);
+    text-align: center;
+  }
+  h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 2px;
+    margin: 0.7rem auto 0;
+    background: linear-gradient(90deg, transparent, var(--dorado), transparent);
+  }
+  .intro-seccion {
+    margin-top: 0.9rem;
+    text-align: center;
+    color: var(--texto-suave);
+    line-height: 1.6;
+  }
+  h3 { font-size: 1.05rem; font-weight: 600; }
+
+  blockquote {
+    font-family: var(--serif);
+    font-style: italic;
+    line-height: 1.7;
+    color: var(--texto);
+  }
+  blockquote::before { content: '\201C'; }
+  blockquote::after { content: '\201D'; }
+
+  /* Te escuché */
+  .escuchado { list-style: none; margin-top: 2rem; display: grid; gap: 1.2rem; }
+  .escuchado li {
+    padding: 1.5rem 1.4rem;
+    border-radius: 16px;
+    background: rgba(255, 253, 248, 0.85);
+    border-left: 4px solid var(--rosa);
+    box-shadow: 0 8px 26px rgba(30, 58, 95, 0.07);
+  }
+  .etiqueta {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dorado);
+    margin-bottom: 0.6rem;
+  }
+  .respuesta {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed rgba(212, 175, 55, 0.45);
+    line-height: 1.65;
+    color: var(--texto-suave);
+  }
+
+  /* Promesas */
+  .promesas { list-style: none; margin-top: 2rem; display: grid; gap: 1rem; }
+  .promesas li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.3rem 1.2rem;
+    border-radius: 16px;
+    background: var(--blanco);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+  }
+  .numero {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--blanco);
+    background: linear-gradient(135deg, var(--rosa), var(--rosa-fuerte));
+  }
+  .promesas p { margin-top: 0.35rem; line-height: 1.6; color: var(--texto-suave); }
+
+  /* Camino de sueños */
+  .camino {
+    list-style: none;
+    margin-top: 2.2rem;
+    position: relative;
+    padding-left: 2.2rem;
+  }
+  .camino::before {
+    content: '';
+    position: absolute;
+    left: 0.7rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background: linear-gradient(180deg, var(--rosa), var(--dorado-suave));
+    border-radius: 2px;
+  }
+  .camino li { position: relative; padding-bottom: 2rem; }
+  .camino li:last-child { padding-bottom: 0; }
+  .punto {
+    position: absolute;
+    left: -2.2rem;
+    top: -0.1rem;
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--blanco);
+    border: 1.5px solid var(--dorado-suave);
+  }
+  .camino blockquote { margin-top: 0.4rem; font-size: 0.98rem; color: var(--texto-suave); }
+  .paso { margin-top: 0.6rem; line-height: 1.6; }
+  .paso span { font-weight: 600; color: var(--rosa-fuerte); }
+
+  /* Pacto */
+  .pacto {
+    padding: 2rem clamp(1.2rem, 5vw, 2rem);
+    border-radius: 20px;
+    background: linear-gradient(160deg, var(--blanco), #fff4f8);
+    border: 1.5px solid var(--rosa);
+    text-align: center;
+  }
+  form { margin-top: 1.4rem; }
+  textarea {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(30, 58, 95, 0.2);
+    background: #fff;
+    font: 1rem/1.6 var(--sans);
+    color: var(--texto);
+    resize: vertical;
+  }
+  textarea:focus-visible { outline: 2px solid var(--rosa); outline-offset: 1px; }
+  .gracias {
+    margin-top: 1.4rem;
+    font-family: var(--manuscrita);
+    font-size: clamp(2rem, 8vw, 2.6rem);
+    color: var(--rosa-fuerte);
+    line-height: 1.3;
+    animation: entra 1.4s ease both;
+  }
+  .pacto.aceptado form { display: none; }
+
+  .oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  /* Jardín final */
+  .jardin {
+    position: relative;
+    height: clamp(160px, 34vw, 240px);
+    overflow: hidden;
+    margin-top: 2.5rem;
+  }
+
+  /* ---------- Pie ---------- */
+  footer {
+    text-align: center;
+    padding: 2rem 16px 2.5rem;
+    border-top: 1px solid rgba(212, 175, 55, 0.25);
+    width: min(100% - 32px, 640px);
+    margin: 0 auto;
+  }
+  .firma { font-family: var(--manuscrita); font-size: 2rem; color: var(--rosa-fuerte); }
+  .ruta { margin-top: 0.3rem; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--dorado); }
+  .volver {
+    display: inline-block;
+    margin-top: 1.2rem;
+    font-size: 0.9rem;
+    color: var(--texto-suave);
+    text-underline-offset: 4px;
+  }
+</style>
+
+<script define:vars={{ hoja: config.hojaRespuestas }}>
+  const CLAVE = 'florecer-aceptado';
+  const sobre = document.getElementById('sobre');
+  const pactoSeccion = document.getElementById('pacto');
+  const form = document.getElementById('form-pacto');
+  const campo = document.getElementById('promesa-ella');
+  const boton = document.getElementById('aceptar');
+  const gracias = document.getElementById('gracias');
+  const jardin = document.getElementById('jardin');
+
+  // Sobre de entrada
+  document.body.classList.add('bloqueado');
+  const abrir = document.getElementById('abrir');
+  abrir.focus({ preventScroll: true });
+  abrir.addEventListener('click', () => {
+    sobre.classList.add('salida');
+    document.body.classList.remove('bloqueado');
+    setTimeout(() => sobre.remove(), 1300);
+  });
+
+  // Cada bloque aparece suave al llegar a él
+  const observador = new IntersectionObserver(
+    (entradas) => {
+      for (const entrada of entradas) {
+        if (!entrada.isIntersecting) continue;
+        entrada.target.classList.add('visible');
+        observador.unobserve(entrada.target);
+      }
+    },
+    { threshold: 0.15 }
+  );
+  document.querySelectorAll('.aparece').forEach((el) => observador.observe(el));
+
+  function florecer() {
+    pactoSeccion.classList.add('aceptado');
+    gracias.hidden = false;
+    jardin.classList.add('crece');
+    setTimeout(() => jardin.classList.add('florece'), 2200);
+    setTimeout(() => jardin.classList.add('listo'), 4600);
+  }
+
+  // Si ya lo aceptó antes, el jardín la recibe florecido
+  try {
+    if (localStorage.getItem(CLAVE)) florecer();
+  } catch {}
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    boton.disabled = true;
+    const respuesta = campo.value.trim() || '(Lo dejó en blanco)';
+    try { localStorage.setItem(CLAVE, new Date().toISOString()); } catch {}
+    florecer();
+    jardin.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Te avisa en tu hoja de cálculo, igual que las cartas
+    if (!hoja) return;
+    try {
+      await fetch(hoja, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          fecha: new Date().toISOString(),
+          carta: '',
+          asunto: 'Volver a florecer: aceptó el pacto',
+          pregunta: 'Si hay algo que necesites de mí cuando discutamos, o algo que tú quieras prometer, escríbelo aquí.',
+          respuesta,
+        }),
+      });
+    } catch {}
+  });
+</script>

@@ -1,0 +1,46 @@
+---
+import Tulipan from './Tulipan.astro';
+
+// Franja de tulipanes junto a la firma: florecen cuando ella llega al final de la página
+const tulipanes = [
+  { x: 4, h: 62, d: 0.5, c: 'c' as const, fila: 'atras' as const, extra: true },
+  { x: 12, h: 82, d: 0.2, c: 'a' as const },
+  { x: 21, h: 58, d: 0.6, c: 'b' as const, fila: 'atras' as const },
+  { x: 30, h: 74, d: 0.35, c: 'c' as const },
+  { x: 40, h: 60, d: 0.7, c: 'b' as const, fila: 'atras' as const, extra: true },
+  { x: 50, h: 90, d: 0, c: 'a' as const },
+  { x: 60, h: 62, d: 0.65, c: 'c' as const, fila: 'atras' as const, extra: true },
+  { x: 70, h: 76, d: 0.3, c: 'b' as const },
+  { x: 79, h: 56, d: 0.55, c: 'c' as const, fila: 'atras' as const },
+  { x: 88, h: 80, d: 0.15, c: 'a' as const },
+  { x: 96, h: 60, d: 0.45, c: 'b' as const, fila: 'atras' as const, extra: true },
+];
+---
+
+<div class="jardin-final" id="jardin-final" aria-hidden="true">
+  {tulipanes.map((t) => <Tulipan {...t} />)}
+</div>
+
+<style>
+  .jardin-final {
+    position: relative;
+    height: clamp(150px, 32vw, 230px);
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+</style>
+
+<script>
+  const jardin = document.getElementById('jardin-final')!;
+  const observador = new IntersectionObserver(
+    ([entrada]) => {
+      if (!entrada.isIntersecting) return;
+      observador.disconnect();
+      jardin.classList.add('crece');
+      setTimeout(() => jardin.classList.add('florece'), 2200);
+      setTimeout(() => jardin.classList.add('listo'), 4600);
+    },
+    { threshold: 0.4 }
+  );
+  observador.observe(jardin);
+</script>

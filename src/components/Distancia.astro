@@ -1,0 +1,163 @@
+---
+import { config } from '../config';
+
+const { yo, ella } = config.ciudades;
+
+// Distancia real en línea recta (fórmula de haversine)
+const rad = (g: number) => (g * Math.PI) / 180;
+const a =
+  Math.sin(rad(ella.lat - yo.lat) / 2) ** 2 +
+  Math.cos(rad(yo.lat)) * Math.cos(rad(ella.lat)) * Math.sin(rad(ella.lon - yo.lon) / 2) ** 2;
+const km = Math.round(6371 * 2 * Math.asin(Math.sqrt(a)));
+
+// Proyección simple del Atlántico: longitud -90..10, latitud -5..60
+const px = (lon: number) => (lon + 90) * 10;
+const py = (lat: number) => (60 - lat) * 10;
+const p1 = { x: px(yo.lon), y: py(yo.lat) };
+const p2 = { x: px(ella.lon), y: py(ella.lat) };
+const ruta = `M${p1.x} ${p1.y} Q${p1.x + 230} ${p2.y - 20} ${p2.x} ${p2.y}`;
+---
+
+<section class="distancia" aria-labelledby="titulo-distancia">
+  <h2 id="titulo-distancia">Tan lejos, tan cerca</h2>
+  <p class="km"><strong>{km.toLocaleString('es-CO')}</strong> km nos separan… por ahora</p>
+
+  <div class="mapa">
+    <svg viewBox="0 0 1000 650" role="img" aria-label={`Una línea dorada une ${yo.nombre} y ${ella.nombre}`}>
+      <defs>
+        <pattern id="puntos" width="22" height="22" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.6" fill="#8ecdf0" opacity="0.55" />
+        </pattern>
+        <linearGradient id="g-ruta" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stop-color="#e8c872" />
+          <stop offset="0.5" stop-color="#d4af37" />
+          <stop offset="1" stop-color="#e8c872" />
+        </linearGradient>
+      </defs>
+      <rect width="1000" height="650" fill="url(#puntos)" />
+      <text x="560" y="420" class="oceano">Océano Atlántico</text>
+
+      <path d={ruta} class="ruta-sombra" />
+      <path d={ruta} class="ruta" />
+
+      <g class="viajero">
+        <path d="M0 6 C-14 -6 -6 -16 0 -8 C6 -16 14 -6 0 6Z" fill="#e86a92" />
+        <animateMotion dur="6s" repeatCount="indefinite" path={ruta} keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" />
+      </g>
+
+      {[{ p: p1, c: yo, abajo: true }, { p: p2, c: ella, abajo: false }].map(({ p, c, abajo }) => (
+        <g transform={`translate(${p.x} ${p.y})`}>
+          <circle r="22" class="onda" />
+          <circle r="9" class="pin" />
+          <text y={abajo ? 52 : -32} class="ciudad">{c.nombre}</text>
+        </g>
+      ))}
+    </svg>
+  </div>
+
+  <div class="relojes">
+    <div class="reloj">
+      <span class="lugar">En {yo.nombre} son las</span>
+      <span class="hora" data-zona={yo.zona}>--:--</span>
+    </div>
+    <svg class="corazon" viewBox="-16 -18 32 28" width="26" height="24" aria-hidden="true"><path d="M0 8 C-15 -4 -8 -16 0 -8 C8 -16 15 -4 0 8Z" /></svg>
+    <div class="reloj">
+      <span class="lugar">En {ella.nombre} son las</span>
+      <span class="hora" data-zona={ella.zona}>--:--</span>
+    </div>
+  </div>
+  <p class="nota">Diferentes horas, el mismo cielo.</p>
+</section>
+
+<script>
+  const horas = document.querySelectorAll<HTMLElement>('.hora[data-zona]');
+  function actualizar() {
+    const ahora = new Date();
+    horas.forEach((el) => {
+      el.textContent = ahora.toLocaleTimeString('es-CO', {
+        timeZone: el.dataset.zona, hour: 'numeric', minute: '2-digit', hour12: true,
+      });
+    });
+  }
+  actualizar();
+  setInterval(actualizar, 20000);
+</script>
+
+<style>
+  .distancia {
+    width: min(100% - 32px, 820px);
+    margin: 0 auto 4rem;
+    text-align: center;
+  }
+  h2 {
+    font-family: var(--manuscrita);
+    font-weight: 400;
+    font-size: clamp(2.4rem, 9vw, 3.2rem);
+    color: var(--rosa-fuerte);
+  }
+  .km { margin-top: 0.2rem; color: var(--texto-suave); }
+  .km strong { font-family: var(--serif); font-size: 1.5rem; color: var(--dorado); }
+
+  .mapa {
+    margin-top: 1.6rem;
+    border-radius: clamp(18px, 5vw, 28px);
+    overflow: hidden;
+    background: linear-gradient(160deg, #f5fbff, var(--cielo-claro) 60%, #fff8e6);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    box-shadow: 0 18px 50px rgba(30, 58, 95, 0.08);
+  }
+  .mapa svg { display: block; width: 100%; height: auto; }
+
+  .oceano {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 26px;
+    fill: var(--cielo-fuerte);
+    text-anchor: middle;
+    letter-spacing: 6px;
+  }
+  .ruta-sombra { fill: none; stroke: rgba(212, 175, 55, 0.18); stroke-width: 14; stroke-linecap: round; }
+  .ruta {
+    fill: none;
+    stroke: url(#g-ruta);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 2 14;
+    animation: fluir 1.4s linear infinite;
+  }
+  @keyframes fluir { to { stroke-dashoffset: -16; } }
+
+  .viajero path { transform: scale(1.6); }
+  .pin { fill: var(--dorado); stroke: var(--blanco); stroke-width: 4; }
+  .onda {
+    fill: rgba(232, 106, 146, 0.25);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: onda 2.4s ease-out infinite;
+  }
+  @keyframes onda {
+    from { transform: scale(0.4); opacity: 1; }
+    to { transform: scale(2.2); opacity: 0; }
+  }
+  .ciudad {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 34px;
+    fill: var(--texto);
+    text-anchor: middle;
+  }
+
+  .relojes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.6rem, 4vw, 2rem);
+    margin-top: 1.6rem;
+  }
+  .reloj { flex: 1 1 0; max-width: 200px; display: flex; flex-direction: column; gap: 0.2rem; }
+  .lugar { font-size: 0.85rem; color: var(--texto-suave); }
+  .hora { font-family: var(--serif); font-size: clamp(1.4rem, 5vw, 1.9rem); color: var(--texto); }
+  .corazon { flex-shrink: 0; fill: none; stroke: var(--rosa-fuerte); stroke-width: 2; overflow: visible; animation: lat 1.6s ease-in-out infinite; }
+  @keyframes lat { 50% { transform: scale(1.2); } }
+  .nota { margin-top: 0.8rem; font-family: var(--serif); font-style: italic; color: var(--texto-suave); }
+</style>

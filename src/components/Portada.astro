@@ -1,0 +1,107 @@
+---
+import { config } from '../config';
+import IconoTulipan from './IconoTulipan.astro';
+---
+
+<header class="portada">
+  <p class="para">Para {config.nombre}</p>
+  <h1>{config.titulo}</h1>
+  <div class="adorno" aria-hidden="true"><span></span><IconoTulipan /><span></span></div>
+
+  <div class="contadores" data-conocimos={config.nosConocimos} data-juntos={config.juntosDesde}>
+    <div class="contador">
+      <span class="numero" data-dias="conocimos">—</span>
+      <span class="etiqueta">días desde que nos conocimos</span>
+      <span class="fecha">domingo 31 de mayo</span>
+    </div>
+    <div class="contador">
+      <span class="numero" data-dias="juntos">—</span>
+      <span class="etiqueta">días siendo nosotros</span>
+      <span class="fecha">desde el 4 de agosto</span>
+    </div>
+  </div>
+</header>
+
+<style>
+  .portada {
+    text-align: center;
+    padding: clamp(4rem, 12vh, 7rem) 16px 2rem;
+  }
+  .para {
+    font-family: var(--manuscrita);
+    font-size: clamp(2rem, 7vw, 2.8rem);
+    color: var(--rosa-fuerte);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(2rem, 8vw, 3.6rem);
+    line-height: 1.15;
+    margin-top: 0.2rem;
+    background: linear-gradient(120deg, var(--texto) 30%, var(--dorado) 50%, var(--texto) 70%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: brillo-oro 7s ease-in-out infinite;
+  }
+  @keyframes brillo-oro {
+    0%, 100% { background-position: 100% 0; }
+    50% { background-position: 0 0; }
+  }
+  .adorno {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    margin: 1.2rem auto 2.4rem;
+    font-size: 1.2rem;
+  }
+  .adorno span {
+    width: 70px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--dorado));
+  }
+  .adorno span:last-child { transform: scaleX(-1); }
+
+  .contadores {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .contador {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 1.2rem clamp(0.6rem, 3vw, 1rem);
+    border-radius: 20px;
+    background: rgba(255, 253, 248, 0.75);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    box-shadow: 0 8px 24px rgba(30, 58, 95, 0.06);
+  }
+  .numero {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 9vw, 2.4rem);
+    color: var(--dorado);
+    line-height: 1;
+  }
+  .etiqueta { font-size: clamp(0.82rem, 3.4vw, 0.92rem); font-weight: 500; line-height: 1.35; }
+  .fecha { font-size: 0.8rem; color: var(--texto-suave); font-style: italic; }
+</style>
+
+<script>
+  const caja = document.querySelector<HTMLElement>('.contadores')!;
+  const hoy = new Date();
+  const hoyUTC = Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const dias = (iso: string) => {
+    const [a, m, d] = iso.split('-').map(Number);
+    return Math.max(0, Math.round((hoyUTC - Date.UTC(a, m - 1, d)) / 86400000));
+  };
+  caja.querySelector('[data-dias="conocimos"]')!.textContent = String(dias(caja.dataset.conocimos!));
+  caja.querySelector('[data-dias="juntos"]')!.textContent = String(dias(caja.dataset.juntos!));
+</script>

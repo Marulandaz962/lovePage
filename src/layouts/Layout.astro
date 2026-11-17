@@ -1,0 +1,78 @@
+---
+import { config } from '../config';
+import DefsTulipan from '../components/DefsTulipan.astro';
+
+interface Props { titulo?: string }
+const { titulo = config.titulo } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#BFE3F7" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{titulo}</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content={`Un rincón hecho para ${config.nombre}, de Pereira a Londres.`} />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={`Para ${config.nombre}, con todo mi amor.`} />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Quicksand:wght@400;500;600&family=Lora:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <DefsTulipan />
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --cielo-claro: #eaf6fd;
+    --cielo: #bfe3f7;
+    --cielo-fuerte: #8ecdf0;
+    --dorado: #d4af37;
+    --dorado-suave: #e8c872;
+    --dorado-claro: #f6e7b8;
+    --rosa: #f4a6c1;
+    --rosa-fuerte: #e86a92;
+    --texto: #1e3a5f;
+    --texto-suave: #4a6585;
+    --blanco: #fffdf8;
+    --manuscrita: 'Great Vibes', cursive;
+    --serif: 'Lora', Georgia, serif;
+    --sans: 'Quicksand', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+  button, [role='button'] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+  body {
+    font-family: var(--sans);
+    color: var(--texto);
+    background: linear-gradient(180deg, var(--cielo-claro) 0%, #f7fbff 40%, var(--cielo-claro) 100%);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body.bloqueado { overflow: hidden; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>

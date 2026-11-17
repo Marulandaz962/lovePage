@@ -1,0 +1,250 @@
+---
+import { config } from '../config';
+import Tulipan from './Tulipan.astro';
+
+// Dos filas de tulipanes: la de atrás más pequeña y suave, la del frente más grande.
+// x: posición horizontal (%), h: altura (%), d: retraso (s), c: tono de rosa
+// extra: se ocultan en pantallas muy angostas para que no se amontonen
+const atras = [
+  { x: 3, h: 44, d: 0.5, c: 'c' as const, extra: true },
+  { x: 13, h: 52, d: 0.7, c: 'b' as const },
+  { x: 25, h: 46, d: 0.4, c: 'c' as const },
+  { x: 38, h: 56, d: 0.8, c: 'b' as const, extra: true },
+  { x: 51, h: 48, d: 0.3, c: 'c' as const },
+  { x: 63, h: 54, d: 0.65, c: 'b' as const, extra: true },
+  { x: 76, h: 45, d: 0.45, c: 'c' as const },
+  { x: 89, h: 53, d: 0.75, c: 'b' as const },
+  { x: 98, h: 47, d: 0.55, c: 'c' as const, extra: true },
+];
+const frente = [
+  { x: 7, h: 58, d: 0.35, c: 'a' as const },
+  { x: 19, h: 70, d: 0.1, c: 'b' as const },
+  { x: 31, h: 54, d: 0.55, c: 'a' as const },
+  { x: 44, h: 78, d: 0, c: 'a' as const },
+  { x: 57, h: 60, d: 0.45, c: 'b' as const },
+  { x: 69, h: 72, d: 0.2, c: 'a' as const },
+  { x: 82, h: 56, d: 0.6, c: 'b' as const },
+  { x: 94, h: 66, d: 0.3, c: 'a' as const },
+];
+const tulipanes = [
+  ...atras.map((t) => ({ ...t, fila: 'atras' as const })),
+  ...frente.map((t) => ({ ...t, fila: 'frente' as const })),
+];
+
+// Destellos dorados y pétalos que caen: posiciones fijas generadas al compilar
+const azar = (min: number, max: number) => +(min + Math.random() * (max - min)).toFixed(2);
+const destellos = Array.from({ length: 28 }, () => ({
+  x: azar(0, 100), y: azar(0, 85), t: azar(2, 6), d: azar(0, 5), s: azar(2, 5),
+}));
+const petalos = Array.from({ length: 14 }, () => ({
+  x: azar(0, 100), t: azar(6, 11), d: azar(0, 6), s: azar(10, 18), r: azar(-180, 180),
+}));
+---
+
+<div id="intro" class="intro" role="button" tabindex="0" aria-label="Toca para que florezcan los tulipanes">
+  <div class="destellos" aria-hidden="true">
+    {destellos.map((p) => (
+      <span style={`left:${p.x}%;top:${p.y}%;--t:${p.t}s;--d:${p.d}s;--s:${p.s}px`} />
+    ))}
+  </div>
+
+  <div class="petalos" aria-hidden="true">
+    {petalos.map((p) => (
+      <span style={`left:${p.x}%;--t:${p.t}s;--d:${p.d}s;--s:${p.s}px;--r:${p.r}deg`} />
+    ))}
+  </div>
+
+  <div class="intro-texto">
+    <p class="saludo">Hola, {config.nombre}</p>
+    <p class="pista">Toca la pantalla para que florezcan</p>
+    <div class="final">
+      <h1>{config.titulo}</h1>
+      <button type="button" class="entrar" id="entrar">Entrar</button>
+    </div>
+  </div>
+
+  <div class="jardin" aria-hidden="true">
+    {tulipanes.map((t) => <Tulipan {...t} />)}
+  </div>
+</div>
+
+<style>
+  .intro {
+    position: fixed;
+    inset: 0;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 100;
+    overflow: hidden;
+    cursor: pointer;
+    outline: none;
+    background:
+      radial-gradient(ellipse at 50% 110%, rgba(246, 231, 184, 0.9) 0%, transparent 55%),
+      linear-gradient(180deg, #8ecdf0 0%, #bfe3f7 45%, #eaf6fd 100%);
+    transition: opacity 1.2s ease, visibility 1.2s;
+  }
+  .intro.salida { opacity: 0; visibility: hidden; }
+
+  /* ---------- Textos ---------- */
+  .intro-texto {
+    position: absolute;
+    top: max(12%, env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(90%, 640px);
+    text-align: center;
+    z-index: 3;
+  }
+  .saludo {
+    font-family: var(--manuscrita);
+    font-size: clamp(3rem, 12vw, 5.5rem);
+    color: var(--blanco);
+    text-shadow: 0 2px 18px rgba(30, 58, 95, 0.25), 0 0 2px rgba(212, 175, 55, 0.6);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 1.4s ease 0.3s, transform 1.4s ease 0.3s;
+  }
+  .pista {
+    margin-top: 0.6rem;
+    font-size: 1rem;
+    color: var(--texto);
+    letter-spacing: 0.04em;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+  .crece .saludo { opacity: 1; transform: none; }
+  .crece .pista { opacity: 0.85; transition-delay: 2.8s; animation: latido 2.4s ease-in-out 3.4s infinite; }
+  .florece .pista { opacity: 0; animation: none; transition-delay: 0s; }
+
+  .final {
+    opacity: 0;
+    transform: translateY(14px);
+    pointer-events: none;
+    transition: opacity 1.2s ease, transform 1.2s ease;
+  }
+  .final h1 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.3rem, 5vw, 2rem);
+    color: var(--texto);
+  }
+  .listo .final { opacity: 1; transform: none; pointer-events: auto; }
+
+  .entrar {
+    margin-top: 1.4rem;
+    font: 600 1rem var(--sans);
+    letter-spacing: 0.08em;
+    color: var(--texto);
+    padding: 0.85rem 2.4rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--dorado);
+    background: linear-gradient(135deg, #fff9e6, var(--dorado-claro));
+    box-shadow: 0 6px 24px rgba(212, 175, 55, 0.35);
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .entrar:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.5);
+    outline: none;
+  }
+
+  @media (hover: hover) {
+    .entrar:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.5); }
+  }
+
+  @keyframes latido {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ---------- Destellos dorados ---------- */
+  .destellos span {
+    position: absolute;
+    width: var(--s);
+    height: var(--s);
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff6d5 0%, var(--dorado) 60%, transparent 70%);
+    box-shadow: 0 0 8px 2px rgba(232, 200, 114, 0.7);
+    opacity: 0;
+    animation: destello var(--t) ease-in-out var(--d) infinite;
+  }
+  @keyframes destello {
+    0%, 100% { opacity: 0; transform: translateY(0) scale(0.6); }
+    50% { opacity: 1; transform: translateY(-24px) scale(1); }
+  }
+
+  /* ---------- Pétalos que caen al florecer ---------- */
+  .petalos span {
+    position: absolute;
+    top: -30px;
+    width: var(--s);
+    height: calc(var(--s) * 0.7);
+    border-radius: 80% 0 80% 0;
+    background: linear-gradient(135deg, #fde0ea, var(--rosa));
+    opacity: 0;
+  }
+  .listo .petalos span { animation: cae var(--t) linear var(--d) infinite; }
+  @keyframes cae {
+    0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+    10% { opacity: 0.9; }
+    100% { opacity: 0; transform: translate(60px, 105vh) rotate(var(--r)); }
+  }
+
+  /* ---------- Jardín y tulipanes ---------- */
+  .jardin {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 58%;
+    z-index: 2;
+  }
+
+  /* Celular en horizontal: tulipanes más bajos para no tapar el texto */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .intro-texto { top: 5%; }
+    .saludo { font-size: clamp(2.4rem, 13vh, 3.6rem); }
+    .final h1 { font-size: 1.2rem; }
+    .entrar { margin-top: 0.7rem; padding: 0.6rem 2rem; }
+    .jardin { height: 44%; }
+  }
+</style>
+
+<script>
+  const intro = document.getElementById('intro')!;
+  const entrar = document.getElementById('entrar')!;
+  let estado: 'crece' | 'florece' | 'listo' = 'crece';
+
+  document.body.classList.add('bloqueado');
+  requestAnimationFrame(() => requestAnimationFrame(() => intro.classList.add('crece')));
+
+  function florecer() {
+    if (estado !== 'crece') return;
+    estado = 'florece';
+    intro.classList.add('florece');
+    setTimeout(() => {
+      estado = 'listo';
+      intro.classList.add('listo');
+      intro.setAttribute('aria-label', 'Bienvenida');
+      entrar.focus({ preventScroll: true });
+    }, 2600);
+  }
+
+  function salir() {
+    intro.classList.add('salida');
+    document.body.classList.remove('bloqueado');
+    document.dispatchEvent(new CustomEvent('intro:fin'));
+    setTimeout(() => intro.remove(), 1300);
+  }
+
+  intro.addEventListener('click', florecer);
+  intro.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); florecer(); }
+  });
+  entrar.addEventListener('click', (e) => { e.stopPropagation(); salir(); });
+
+  // Si no toca nada, florecen solos después de un rato
+  setTimeout(florecer, 12000);
+</script>

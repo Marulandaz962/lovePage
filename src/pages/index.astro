@@ -1,0 +1,38 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Intro from '../components/Intro.astro';
+import Portada from '../components/Portada.astro';
+import FraseDelDia from '../components/FraseDelDia.astro';
+import Distancia from '../components/Distancia.astro';
+import Preguntas from '../components/Preguntas.astro';
+import { config } from '../config';
+import IconoTulipan from '../components/IconoTulipan.astro';
+import JardinFinal from '../components/JardinFinal.astro';
+---
+
+<Layout>
+  <Intro />
+  <main>
+    <Portada />
+    <FraseDelDia />
+    <Distancia />
+    <Preguntas />
+  </main>
+  <footer>
+    <p class="firma">{config.firma}</p>
+    <p class="ruta">Pereira <IconoTulipan size={16} /> Londres</p>
+  </footer>
+  <JardinFinal />
+</Layout>
+
+<style>
+  footer {
+    text-align: center;
+    padding: 2rem 16px 0.5rem;
+    border-top: 1px solid rgba(212, 175, 55, 0.25);
+    width: min(100% - 32px, 640px);
+    margin: 0 auto;
+  }
+  .firma { font-family: var(--manuscrita); font-size: 2rem; color: var(--rosa-fuerte); }
+  .ruta { margin-top: 0.3rem; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--dorado); }
+</style>

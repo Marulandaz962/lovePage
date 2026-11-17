@@ -1,0 +1,119 @@
+---
+// Un tulipán animado. Su estado lo controla el contenedor con las clases:
+// .crece (brota el tallo y aparece el botón), .florece (se abren los pétalos) y .listo (se mece).
+interface Props {
+  x: number;       // posición horizontal (%)
+  h: number;       // altura (%) respecto al contenedor
+  d: number;       // retraso (s)
+  c: 'a' | 'b' | 'c';
+  fila?: 'atras' | 'frente';
+  extra?: boolean; // se oculta en pantallas angostas
+}
+const { x, h, d, c, fila = 'frente', extra = false } = Astro.props;
+---
+
+<svg
+  class:list={['tulipan', fila, { extra }]}
+  viewBox="0 0 100 220"
+  style={`left:${x}%;height:${h}%;--d:${d}s`}
+  aria-hidden="true"
+>
+  <g class="balanceo">
+    <path class="tallo" d="M50 220 Q43 150 50 80" />
+    <path class="hoja hoja-izq" d="M50 196 Q16 170 22 118 Q40 152 50 186Z" />
+    <path class="hoja hoja-der" d="M50 166 Q82 146 80 106 Q63 134 50 158Z" />
+    <g class="flor">
+      <path class="p-fondo" d="M50 80 C35 75 33 48 50 28 C67 48 65 75 50 80Z" fill="url(#g-rosa-fondo)" />
+      <g class="polen">
+        <circle cx="46" cy="58" r="1.6" />
+        <circle cx="50" cy="54" r="1.8" />
+        <circle cx="54" cy="58" r="1.6" />
+      </g>
+      <path class="p-izq" d="M50 80 C30 78 26 50 41 30 C47 47 52 66 50 80Z" fill={`url(#g-rosa-${c})`} />
+      <path class="p-der" d="M50 80 C70 78 74 50 59 30 C53 47 48 66 50 80Z" fill={`url(#g-rosa-${c})`} />
+      <path class="brillo" d="M43 70 C38 62 38 50 42 42" />
+    </g>
+  </g>
+</svg>
+
+<style>
+  .tulipan {
+    position: absolute;
+    bottom: -2%;
+    transform: translateX(-50%);
+    overflow: visible;
+  }
+  .tulipan.atras { z-index: 1; filter: saturate(0.85) brightness(1.04); opacity: 0.88; }
+  .tulipan.frente { z-index: 2; }
+  @media (max-width: 600px) {
+    .tulipan.extra { display: none; }
+  }
+
+  .tulipan * { transform-box: view-box; }
+
+  .tallo {
+    fill: none;
+    stroke: url(#g-tallo);
+    stroke-width: 3.2;
+    stroke-linecap: round;
+    stroke-dasharray: 160;
+    stroke-dashoffset: 160;
+  }
+  .hoja { fill: url(#g-tallo); transform: scale(0); }
+  .hoja-izq { transform-origin: 50px 192px; }
+  .hoja-der { transform-origin: 50px 162px; }
+
+  .flor { transform-origin: 50px 80px; transform: scale(0); }
+  .p-izq, .p-der, .polen, .brillo { transform-origin: 50px 80px; }
+  .p-izq { transform: rotate(11deg); }
+  .p-der { transform: rotate(-11deg); }
+  .polen { fill: var(--dorado-suave); opacity: 0; }
+  .brillo { fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 1.4; stroke-linecap: round; }
+
+  /* Fase 1: crecen los tallos y aparecen los botones cerrados */
+  :global(.crece) .tallo {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1.6s cubic-bezier(0.45, 0, 0.25, 1) var(--d);
+  }
+  :global(.crece) .hoja {
+    transform: scale(1);
+    transition: transform 1s cubic-bezier(0.3, 1.4, 0.5, 1) calc(var(--d) + 0.9s);
+  }
+  :global(.crece) .flor {
+    transform: scale(0.55);
+    transition: transform 1s cubic-bezier(0.3, 1.5, 0.5, 1) calc(var(--d) + 1.4s);
+  }
+
+  /* Fase 2: los pétalos se abren uno a uno */
+  :global(.florece) .flor {
+    transform: scale(1);
+    transition: transform 1.8s cubic-bezier(0.25, 1.2, 0.4, 1) calc(var(--d) * 0.8);
+  }
+  :global(.florece) .p-izq {
+    transform: rotate(-26deg);
+    transition: transform 2s cubic-bezier(0.25, 1.3, 0.4, 1) calc(var(--d) * 0.8 + 0.3s);
+  }
+  :global(.florece) .p-der {
+    transform: rotate(26deg);
+    transition: transform 2s cubic-bezier(0.25, 1.3, 0.4, 1) calc(var(--d) * 0.8 + 0.5s);
+  }
+  :global(.florece) .polen {
+    opacity: 1;
+    transition: opacity 1.2s ease calc(var(--d) * 0.8 + 1.2s);
+  }
+  :global(.florece) .brillo {
+    transform: rotate(-26deg);
+    transition: transform 2s cubic-bezier(0.25, 1.3, 0.4, 1) calc(var(--d) * 0.8 + 0.3s);
+  }
+
+  /* Fase 3: se mecen con el viento */
+  .balanceo { transform-origin: 50px 220px; }
+  :global(.listo) .balanceo {
+    animation: balanceo 5s ease-in-out infinite alternate;
+    animation-delay: calc(var(--d) * -3);
+  }
+  @keyframes balanceo {
+    from { transform: rotate(-2.5deg); }
+    to { transform: rotate(2.5deg); }
+  }
+</style>
